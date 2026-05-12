@@ -1,0 +1,48 @@
+# Python
+venv/
+venv_mac/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+bin/
+lib/
+develop-eggs/
+dist/
+eggs/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+local_settings.py
+staticfiles/
+media/
+
+# Frontend
+node_modules/
+FrontEnd/node_modules/
+dist/
+FrontEnd/dist/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+.vscode/
+.idea/
+*.log
