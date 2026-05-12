@@ -4,6 +4,9 @@ import { GlobalStateContext } from '../context/GlobalStateContext';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import './CSS/Voice.css';
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+
 const playAudioFromText = async (text) => {
   const encodedText = encodeURIComponent(text);
   const googleTTSUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q=${encodedText}&tl=en/`;
@@ -81,7 +84,8 @@ const VoiceAssistant = () => {
 
   const handleLogin = async (email, password) => {
     try {
-      const res = await fetch('http://localhost:3000/login/', {
+      const res = await fetch(`${BASE_URL}/login/`, {
+
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -171,7 +175,8 @@ const VoiceAssistant = () => {
   const processVoiceCommand = useCallback(async (command) => {
     setIsProcessing(true);
     try {
-      const res = await fetch('http://localhost:3000/voice/', {
+      const res = await fetch(`${BASE_URL}/voice/`, {
+
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ transcript: command }),
