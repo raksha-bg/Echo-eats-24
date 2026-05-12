@@ -4,8 +4,7 @@ import { GlobalStateContext } from '../context/GlobalStateContext';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import './CSS/Voice.css';
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const playAudioFromText = async (text) => {
   const encodedText = encodeURIComponent(text);
@@ -53,7 +52,7 @@ const VoiceAssistant = () => {
         setHasGreeted(true);
       }, 1000);
     }
-  }, []); 
+  }, []);
 
   // ── TTS ────────────────────────────────────────────────────────────────────
   const speakResponse = useCallback(async (text) => {
@@ -85,7 +84,6 @@ const VoiceAssistant = () => {
   const handleLogin = async (email, password) => {
     try {
       const res = await fetch(`${BASE_URL}/login/`, {
-
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -176,7 +174,6 @@ const VoiceAssistant = () => {
     setIsProcessing(true);
     try {
       const res = await fetch(`${BASE_URL}/voice/`, {
-
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ transcript: command }),
@@ -231,14 +228,14 @@ const VoiceAssistant = () => {
     setTranscriptTimeout(timeout);
 
     return () => clearTimeout(timeout);
-  }, [transcript, isListening]); 
+  }, [transcript, isListening]);
 
   useEffect(() => {
     if (!listening && transcript && isListening) {
       const timer = setTimeout(stopListening, 1000);
       return () => clearTimeout(timer);
     }
-  }, [listening, transcript, isListening]); 
+  }, [listening, transcript, isListening]);
 
   const startListening = () => {
     window.speechSynthesis?.cancel();

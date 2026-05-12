@@ -8,7 +8,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-  
+
   const { login } = useContext(GlobalStateContext)
   const navigate = useNavigate()
   const location = useLocation()
@@ -27,9 +27,9 @@ const LoginPage = () => {
           },
           body: JSON.stringify({ email, password })
         })
-        
+
         const data = await response.json()
-        
+
         if (response.ok) {
           login(data.user)
           navigate(from, { replace: true })
@@ -44,9 +44,9 @@ const LoginPage = () => {
           },
           body: JSON.stringify({ name, email, password })
         })
-        
+
         const data = await response.json()
-        
+
         if (response.ok) {
           login(data.user)
           navigate(from, { replace: true })
@@ -63,7 +63,7 @@ const LoginPage = () => {
     <div className="login-container">
       <form onSubmit={handleSubmit} className="login-card">
         <h2>{isLogin ? "Login" : "Sign Up"}</h2>
-        
+
         {error && <div className="error-message">{error}</div>}
 
         {!isLogin && (

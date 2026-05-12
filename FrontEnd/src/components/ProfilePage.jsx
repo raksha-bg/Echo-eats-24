@@ -2,6 +2,9 @@ import React, { useEffect, useState, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './CSS/Profile.css'
 import { GlobalStateContext } from '../context/GlobalStateContext'
+
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const ProfilePage = () => {
     const { isLoggedIn, user, logout } = useContext(GlobalStateContext)
     const [orders, setOrders] = useState([])
@@ -20,7 +23,7 @@ const ProfilePage = () => {
 
     const fetchUserOrders = async () => {
         try {
-            const response = await fetch(`http://localhost:3000/orders/${user.user_id}/`)
+            const response = await fetch(`${BASE_URL}/orders/${user.user_id}/`)
             const data = await response.json()
             setOrders(data)
             setLoading(false)

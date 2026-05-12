@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import './CSS/Cart.css'
 import { GlobalStateContext } from '../context/GlobalStateContext'
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const CartPage = () => {
     const { Quantity, setQuantity, isLoggedIn, user, foodData, updateQuantity, fetchFoodData } = useContext(GlobalStateContext)
     const [cartItems, setCartItems] = useState([])
@@ -61,7 +63,7 @@ const CartPage = () => {
         setLoading(true)
 
         try {
-            const orderResponse = await fetch("http://localhost:3000/create-order/", {
+            const orderResponse = await fetch(`${BASE_URL}/create-order/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -108,127 +110,122 @@ const CartPage = () => {
     }
 
     const handleUPI = async () => {
-    setShowPaymentModal(false)
-    window.location.hash = ''
-    setLoading(true)
+        setShowPaymentModal(false)
+        window.location.hash = ''
+        setLoading(true)
 
-    try {
-        const orderResponse = await fetch("http://localhost:3000/create-order/", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                userId: user.user_id,
-                amount: total,
-                items: cartItems,
-                paymentMethod: 'UPI'
+        try {
+            const orderResponse = await fetch(`${BASE_URL}/create-order/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: user.user_id,
+                    amount: total,
+                    items: cartItems,
+                    paymentMethod: 'UPI'
+                })
             })
-        })
 
-        const orderData = await orderResponse.json()
-        
-        if (!orderData.success) {
-            throw new Error(orderData.error || "Failed to create order")
-        }
+            const orderData = await orderResponse.json()
+            
+            if (!orderData.success) {
+                throw new Error(orderData.error || "Failed to create order")
+            }
 
-        if (!window.Razorpay) {
-            await new Promise((resolve, reject) => {
-                const script = document.createElement('script')
-                script.src = 'https://checkout.razorpay.com/v1/checkout.js'
-                script.onload = resolve
-                script.onerror = reject
-                document.body.appendChild(script)
-            })
-        }
+            if (!window.Razorpay) {
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script')
+                    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+                    script.onload = resolve
+                    script.onerror = reject
+                    document.body.appendChild(script)
+                })
+            }
 
-        const options = {
-            key: 'rzp_test_SdTWYyzys8e6Zq',
-            amount: total * 100,
-            currency: 'INR',
-            name: 'EchoEats',
-            description: 'Food Order Payment',
-            order_id: orderData.razorpayOrderId,
-            handler: async (response) => {
-                try {
-                    const verifyResponse = await fetch("http://localhost:3000/verify-payment/", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_signature: response.razorpay_signature,
-                            orderId: orderData.orderId
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_SdTWYyzys8e6Zq',
+                amount: total * 100,
+                currency: 'INR',
+                name: 'EchoEats',
+                description: 'Food Order Payment',
+                order_id: orderData.razorpayOrderId,
+                handler: async (response) => {
+                    try {
+                        const verifyResponse = await fetch(`${BASE_URL}/verify-payment/`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature,
+                                orderId: orderData.orderId
+                            })
                         })
-                    })
 
-                    const verifyData = await verifyResponse.json()
+                        const verifyData = await verifyResponse.json()
 
-                    if (verifyData.success) {
-                        setOrderMessage('Payment successful! Order placed successfully!')
-                        setShowOrderPopup(true)
-
-                        // Clear cart
-                        for (const item of cartItems) {
-                            await updateQuantity(item.FoodID, -item.Quantity)
-                        }
-
-     
-                        setTimeout(() => {
-                            setOrderMessage('Your order has been delivered! Enjoy your meal! 🍕')
+                        if (verifyData.success) {
+                            setOrderMessage('Payment successful! Order placed successfully!')
                             setShowOrderPopup(true)
+
+                            for (const item of cartItems) {
+                                await updateQuantity(item.FoodID, -item.Quantity)
+                            }
+
+                            setTimeout(() => {
+                                setOrderMessage('Your order has been delivered! Enjoy your meal! 🍕')
+                                setShowOrderPopup(true)
+                                setTimeout(() => {
+                                    setShowOrderPopup(false)
+                                }, 3000)
+                            }, 35000)
+
                             setTimeout(() => {
                                 setShowOrderPopup(false)
                             }, 3000)
-                        }, 35000)
 
-                    
-                        setTimeout(() => {
-                            setShowOrderPopup(false)
-                        }, 3000)
-
-                        navigate('/orders')
-                    } else {
-                        throw new Error(verifyData.error || "Payment verification failed")
+                            navigate('/orders')
+                        } else {
+                            throw new Error(verifyData.error || "Payment verification failed")
+                        }
+                    } catch (error) {
+                        console.error("Verification error:", error)
+                        alert("Payment verification failed: " + error.message)
                     }
-                } catch (error) {
-                    console.error("Verification error:", error)
-                    alert("Payment verification failed: " + error.message)
-                }
-            },
-            prefill: {
-                name: user.name,
-                email: user.email
-            },
-            theme: {
-                color: '#a75e3d'
-            },
-            modal: {
-                ondismiss: () => {
-                    console.log("Payment modal closed")
-                    setLoading(false)
+                },
+                prefill: {
+                    name: user.name,
+                    email: user.email
+                },
+                theme: {
+                    color: '#a75e3d'
+                },
+                modal: {
+                    ondismiss: () => {
+                        console.log("Payment modal closed")
+                        setLoading(false)
+                    }
                 }
             }
-        }
 
-        const razorpay = new window.Razorpay(options)
-        razorpay.on('payment.failed', (response) => {
-            console.error("Payment failed:", response.error)
-            alert(`Payment failed: ${response.error.description}`)
+            const razorpay = new window.Razorpay(options)
+            razorpay.on('payment.failed', (response) => {
+                console.error("Payment failed:", response.error)
+                alert(`Payment failed: ${response.error.description}`)
+                setLoading(false)
+            })
+            razorpay.open()
+            
+        } catch (error) {
+            console.error("Payment error:", error)
+            alert("Payment failed: " + error.message)
             setLoading(false)
-        })
-        razorpay.open()
-        
-    } catch (error) {
-        console.error("Payment error:", error)
-        alert("Payment failed: " + error.message)
-        setLoading(false)
-    } finally {
-        
+        }
     }
-}
 
     return (
         <div className="cart-container">

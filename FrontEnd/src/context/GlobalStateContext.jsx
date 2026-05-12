@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 
 export const GlobalStateContext = createContext()
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export const GlobalStateProvider = ({ children }) => {
 
